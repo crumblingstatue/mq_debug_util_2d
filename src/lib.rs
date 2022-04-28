@@ -1,56 +1,14 @@
-use lazy_static::lazy_static;
+use gamedebug_core::{enabled, frame, Info, IMMEDIATE, PERSISTENT};
 use macroquad::prelude::*;
-use std::sync::{
-    atomic::{AtomicBool, AtomicU32, Ordering},
-    Mutex,
-};
-
-lazy_static! {
-    static ref IMMEDIATE: Mutex<Vec<Info>> = Mutex::new(Vec::new());
-    static ref PERSISTENT: Mutex<Vec<PerEntry>> = Mutex::new(Vec::new());
-}
-
-static FRAME_COUNTER: AtomicU32 = AtomicU32::new(0);
-
-pub enum Info {
-    Msg(String),
-    Rect(f32, f32, f32, f32, Color),
-}
-
-pub static ENABLED: AtomicBool = AtomicBool::new(false);
-
-/// Add immediate info for the current frame
-pub fn imm(info: Info) {
-    if ENABLED.load(Ordering::Acquire) {
-        IMMEDIATE.lock().unwrap().push(info);
-    }
-}
-
-struct PerEntry {
-    frame: u32,
-    info: Info,
-}
-
-/// Add persistent information
-pub fn per(info: Info) {
-    let mut log = PERSISTENT.lock().unwrap();
-    log.push(PerEntry {
-        frame: FRAME_COUNTER.load(Ordering::Acquire),
-        info,
-    });
-    if log.len() > 20 {
-        log.remove(0);
-    }
-}
 
 const FONT_SIZE: f32 = 20.0;
 
 pub fn draw_world() {
-    if ENABLED.load(Ordering::Acquire) {
+    if enabled() {
         let imms = IMMEDIATE.lock().unwrap();
         for imm in imms.iter() {
             if let Info::Rect(x, y, w, h, c) = *imm {
-                draw_rectangle(x, y, w, h, c)
+                draw_rectangle(x, y, w, h, color_u8!(c.r, c.g, c.b, c.a))
             }
         }
     }
@@ -58,7 +16,7 @@ pub fn draw_world() {
 
 /// Draw all info bits, then clear
 pub fn draw_overlay() {
-    if ENABLED.load(Ordering::Acquire) {
+    if enabled() {
         let infos = IMMEDIATE.lock().unwrap();
         let mut y = FONT_SIZE;
         draw_rectangle(
@@ -68,7 +26,7 @@ pub fn draw_overlay() {
             (infos.iter().filter(|i| matches!(i, Info::Msg(_))).count() + 2) as f32 * FONT_SIZE,
             Color::from_rgba(0, 0, 0, 100),
         );
-        let frame = FRAME_COUNTER.load(Ordering::Acquire);
+        let frame = frame();
         draw_text(
             &format!("= Debug (frame {}) =", frame),
             0.,
@@ -105,42 +63,4 @@ pub fn draw_overlay() {
             }
         }
     }
-}
-
-pub fn clear_immediates() {
-    IMMEDIATE.lock().unwrap().clear();
-}
-
-pub fn toggle() {
-    let current = ENABLED.load(Ordering::Acquire);
-    ENABLED.store(!current, Ordering::Release);
-}
-
-pub fn enabled() -> bool {
-    ENABLED.load(Ordering::Acquire)
-}
-
-pub fn inc_frame() {
-    let frame = FRAME_COUNTER.load(Ordering::Acquire);
-    FRAME_COUNTER.store(frame + 1, Ordering::Release);
-}
-
-#[macro_export]
-macro_rules! imm_msg {
-    ($x:expr) => {{
-        if $crate::ENABLED.load(std::sync::atomic::Ordering::Acquire) {
-            $crate::imm($crate::Info::Msg(format!(
-                concat!(stringify!($x), ": {:?}"),
-                $x
-            )));
-        }
-        $x
-    }};
-}
-
-#[macro_export]
-macro_rules! per_msg {
-    ($($arg:tt)*) => {{
-        $crate::per($crate::Info::Msg(format!($($arg)*)));
-    }};
 }

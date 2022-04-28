@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 lazy_static = "1.4.0"
 macroquad = "0.3.6"
+gamedebug_core = {git = "https://github.com/crumblingstatue/gamedebug_core.git"}
