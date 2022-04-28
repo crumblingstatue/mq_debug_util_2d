@@ -1,4 +1,6 @@
-pub use gamedebug_core::{enabled, frame, imm, imm_msg, inc_frame, per, per_msg, Info};
+pub use gamedebug_core::{
+    clear_immediates, enabled, frame, imm, imm_msg, inc_frame, per, per_msg, toggle, Info,
+};
 use gamedebug_core::{IMMEDIATE, PERSISTENT};
 use macroquad::prelude::*;
 
