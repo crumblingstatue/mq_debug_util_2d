@@ -128,8 +128,8 @@ pub fn inc_frame() {
 #[macro_export]
 macro_rules! imm_msg {
     ($x:expr) => {{
-        if crate::debug::ENABLED.load(std::sync::atomic::Ordering::Acquire) {
-            crate::debug::imm(crate::debug::Info::Msg(format!(
+        if $crate::ENABLED.load(std::sync::atomic::Ordering::Acquire) {
+            $crate::imm($crate::Info::Msg(format!(
                 concat!(stringify!($x), ": {:?}"),
                 $x
             )));
@@ -141,8 +141,8 @@ macro_rules! imm_msg {
 #[macro_export]
 macro_rules! per_msg {
     ($($arg:tt)*) => {{
-        if crate::debug::ENABLED.load(std::sync::atomic::Ordering::Acquire) {
-            crate::debug::per(crate::debug::Info::Msg(format!($($arg)*)));
+        if $crate::ENABLED.load(std::sync::atomic::Ordering::Acquire) {
+            $crate::per($crate::Info::Msg(format!($($arg)*)));
         }
     }};
 }
