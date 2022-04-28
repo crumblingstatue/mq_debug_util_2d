@@ -141,8 +141,6 @@ macro_rules! imm_msg {
 #[macro_export]
 macro_rules! per_msg {
     ($($arg:tt)*) => {{
-        if $crate::ENABLED.load(std::sync::atomic::Ordering::Acquire) {
-            $crate::per($crate::Info::Msg(format!($($arg)*)));
-        }
+        $crate::per($crate::Info::Msg(format!($($arg)*)));
     }};
 }
