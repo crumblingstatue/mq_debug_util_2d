@@ -1,4 +1,5 @@
-use gamedebug_core::{enabled, frame, Info, IMMEDIATE, PERSISTENT};
+pub use gamedebug_core::{enabled, frame, imm, imm_msg, inc_frame, per, per_msg, Info};
+use gamedebug_core::{IMMEDIATE, PERSISTENT};
 use macroquad::prelude::*;
 
 const FONT_SIZE: f32 = 20.0;
